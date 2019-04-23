@@ -1,14 +1,13 @@
 FROM openjdk:8
 WORKDIR /app
 COPY . /app
-RUN ./gradlew clean war
-RUN find . -name "*tomcat*"
+RUN ./gradlew clean && ./gradlew war && ./gradlew cargoConfigureLocal
 
 FROM openjdk:8-jre-alpine
 WORKDIR /app
 COPY --from=0 /app/uaa/build/libs/*.war .
 COPY --from=0 /app/statsd/build/libs/*.war .
-COPY --from=0 /app/build/extract/tomcat-8.5.23/apache-tomcat-8.5.23/bin/catalina.sh .
+COPY --from=0 /app/build/extract/tomcat-9.0.13/apache-tomcat-9.0.13/bin/catalina.sh .
 RUN chmod +x catalina.sh
 EXPOSE 8080
 CMD ["catalina.sh", "run"]
