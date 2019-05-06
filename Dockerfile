@@ -5,12 +5,17 @@ RUN ./gradlew clean && ./gradlew war && ./gradlew cargoConfigureLocal
 
 FROM openjdk:8-jre-alpine
 WORKDIR /app
+
 COPY --from=0 /app/uaa/build/libs/*.war .
 COPY --from=0 /app/statsd/build/libs/*.war .
-COPY --from=0 /app/build/extract/tomcat-9.0.13/apache-tomcat-9.0.13/bin/catalina.sh .
-RUN chmod +x catalina.sh
-EXPOSE 8080
-CMD ["catalina.sh", "run"]
+COPY --from=0 /app/build/extract/tomcat-9.0.13/apache-tomcat-9.0.13 ./tomcat
+COPY --from=0 /app/scripts/cargo/tomcat-conf/context.xml /app/config
+
+RUN chmod +x ./tomcat/bin/catalina.sh
+ENV CONF_DIR /app/config
+
+EXPOSE 8443
+CMD ["./tomcat/bin/catalina.sh", "run"]
 #CMD [ \
 #  "java", \
 #  "-Dspring.profiles.active=dev,dev-h2", \
